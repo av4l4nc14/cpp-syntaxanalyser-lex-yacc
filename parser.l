@@ -40,6 +40,7 @@ IS			(u|U|l|L)*
 "unsigned"		{ return(UNSIGNED); }
 "void"			{ return(VOID); }
 "endl"                  {return (ENDL);}
+"friend"                {return (FRIEND);}
 
 
 "auto"			{  return(AUTO); }
@@ -66,7 +67,7 @@ IS			(u|U|l|L)*
 "private"		{return (ACCESS);}
 "protected"		{return (ACCESS);}
 "class"			{return (CLASS);}
-
+"std"                   {return (STD);}
 
 {L}({L}|{D})*		{return (IDENTIFIER);}	
 {D}+{E}?{FS}?		{ return(CONSTANT); }
