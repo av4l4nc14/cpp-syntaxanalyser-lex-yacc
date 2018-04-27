@@ -14,8 +14,8 @@ void yyerror(char *);
 %token VOID CHAR SHORT INT LONG FLOAT DOUBLE SIGNED UNSIGNED
 %token MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN ADD_ASSIGN SUB_ASSIGN LEFT_ASSIGN RIGHT_ASSIGN AND_ASSIGN XOR_ASSIGN OR_ASSIGN
 %token ACCESS NEW 
-%token CLASS STRUCT CIN COUT PTR_OP INC_OP LEFT_OP SIZEOF  RIGHT_OP LE_OP GE_OP EQ_OP NE_OP AND_OP OR_OP DEC_OP 
-%token CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN CC ENDL
+%token CLASS STRUCT CIN COUT PTR_OP INC_OP LEFT_OP SIZEOF  RIGHT_OP LE_OP GE_OP EQ_OP NE_OP AND_OP OR_OP DEC_OP STD
+%token CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN CC ENDL FRIEND
 %start strt
 
 %%
@@ -317,6 +317,9 @@ YRT : ACCESS IDENTIFIER ',' YRT
       | function_definition BLCK
       | FUNCTION_OUTSIDE ';'BLCK
       | constructor ';' BLCK
+      |FRIEND CLASS IDENTIFIER ';' BLCK
+      | FRIEND FUNCTION_OUTSIDE ';' BLCK
+      | FRIEND outside_class_function ';' BLCK
       |
       ;
       
@@ -357,12 +360,12 @@ class_call : 	 CLASS IDENTIFIER IDENTIFIER
            |  IDENTIFIER  IDENTIFIER '=' NEW cnss
            ;   	
  
-COMPOUND_BLOCK : STATEMENT_LIST   {printf("0");}
-               | STATEMENT       {printf("1");}
+COMPOUND_BLOCK : STATEMENT_LIST   //{printf("0");}
+               | STATEMENT     //  {printf("1");}
                |
                ;
 
-STATEMENT_LIST : STATEMENT STATEMENT_LIST {printf("2");}
+STATEMENT_LIST : STATEMENT STATEMENT_LIST //{//printf("2");}
                |
                ;
 STATEMENT : declarations
@@ -415,14 +418,20 @@ JUMP_STATEMENT : GOTO IDENTIFIER ';'
 	
 PRINT_STATEMENT : CIN '>''>' YZV 
                 | COUT '<''<' YT 
+                | STD ':'':' CIN'>''>' YZV
+                | STD ':'':' COUT '>' '>' YT
                 ;
                 
 YZV : IDENTIFIER
     | IDENTIFIER '>''>' YZV
+    | IDENTIFIER '.' IDENTIFIER '>''>' YZV
+    | IDENTIFIER '.' IDENTIFIER 
+    | array_define
+    | array_define '>' '>' YZV
     ;
     
-YT : IDENTIFIER
-    | IDENTIFIER '<''<' YT
+YT : X
+    | X '<''<' YT
     | ENDL
     |ENDL '<''<' YT
     ;    
