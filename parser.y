@@ -16,13 +16,14 @@ void yyerror(char *);
 %token MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN ADD_ASSIGN SUB_ASSIGN LEFT_ASSIGN RIGHT_ASSIGN AND_ASSIGN XOR_ASSIGN OR_ASSIGN
 %token ACCESS NEW
 %token CLASS STRUCT CIN COUT PTR_OP INC_OP LEFT_OP SIZEOF  RIGHT_OP LE_OP GE_OP EQ_OP NE_OP AND_OP OR_OP DEC_OP STD
-%token CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN CC ENDL FRIEND VIRTUAL 
+%token CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN CC ENDL FRIEND VIRTUAL  OPERATOR CONST 
 %start strt
 
 %%
 
-strt : external_dec
+strt : external_dec             // {printf("successful parsing\n");}
      | strt external_dec
+     
      ;
      
 
@@ -53,6 +54,7 @@ external : '#'INCLUDE '<' IDENTIFIER '>'
       | USING NAMESPACE STD ';'       
       |'#' DEFINE cnss '{' COMPOUND_BLOCK '}'
       | TYPEDEF type IDENTIFIER ';'
+      | TYPEDEF type '&' IDENTIFIER ';'
       ;
       
  
@@ -62,7 +64,9 @@ ZZ :CONSTANT
    
 
 Z :type assignmentlist
-  | Z ','type assignmentlist    
+  | Z ','type assignmentlist   
+  | type2 assignmentlist2
+  | Z ',' type2 assignmentlist2 
   ;
  
 
@@ -72,9 +76,22 @@ type : storage_specifier   sign_specifier type_specifier
      ;
      
      
+     
+type2 : storage_specifier   sign_specifier type_specifier '&'
+     | sign_specifier type_specifier '&'
+     |type_specifier '&'
+     ;
+          
+     
+assignmentlist2 : SS
+           | SS ',' assignmentlist2
+           ;     
+     
+     
 storage_specifier : EXTERN
           | STATIC
           | AUTO
+          |CONST
           ;
           
           
@@ -109,8 +126,16 @@ YY : IY
 IY : IDENTIFIER
    | IDENTIFIER  assignment_operator CONSTANT
    | IDENTIFIER assignment_operator STRING_LITERAL
+   | SS
    ;       
    
+SS :IDENTIFIER assignment_operator function_call
+   | IDENTIFIER assignment_operator function_call2
+   | IDENTIFIER assignment_operator IDENTIFIER'.' IDENTIFIER
+   |IDENTIFIER assignment_operator array_define
+   |IDENTIFIER assignment_operator IDENTIFIER
+   
+   ;   
 assignment_operator
     : '='
     | MUL_ASSIGN
@@ -125,12 +150,18 @@ assignment_operator
     | OR_ASSIGN
     ;   
     
-assignment : type IDENTIFIER assignment_operator X
+assignment : CV
+	|type IDENTIFIER assignment_operator X
        | array_define assignment_operator X
        | IDENTIFIER assignment_operator X
        |IDENTIFIER '.' IDENTIFIER assignment_operator X
        | array_declare assignment_operator X
        ;
+       CV :type2 IDENTIFIER assignment_operator function_call
+       |type2 IDENTIFIER assignment_operator function_call2
+       |type2 IDENTIFIER assignment_operator IDENTIFIER'.' IDENTIFIER
+       |type2 IDENTIFIER assignment_operator array_define
+       ;       
        
 X :function_call
   |function_call2
@@ -172,6 +203,8 @@ array_define : IDENTIFIER E
 array_declare : type array_define
           | IDENTIFIER array_define
           | CLASS IDENTIFIER array_define
+          |type2 array_define '=' IDENTIFIER
+          |type2 array_define '='IDENTIFIER '.' IDENTIFIER
           ;    
           
 primary_expression
@@ -179,6 +212,10 @@ primary_expression
     | CONSTANT
     | STRING_LITERAL
     | '(' expression ')'
+    | IDENTIFIER'.' IDENTIFIER
+    |array_define
+    |function_call
+    |function_call2
     ;
 
 postfix_expression
@@ -215,6 +252,7 @@ unary_operator
 cast_expression
     : unary_expression
     | '(' type ')' cast_expression
+    |'(' type2 ')' cast_expression
     ;
 
 multiplicative_expression
@@ -342,9 +380,24 @@ cns : IDENTIFIER  '(' YX ')' ASDD            //  {printf("6");}
      | IDENTIFIER '(' ')'             //    {printf("8");}
      | IDENTIFIER  '(' ')' ASDD    
          | IDENTIFIER '(' VOID ')'             //    {printf("8");}
-     | IDENTIFIER  '(' VOID ')' ASDD        //{printf("9");}
+     | IDENTIFIER  '(' VOID ')' ASDD  
+          //{printf("9");}
+     |  ITT  '(' YX ')'            //  {printf("6");}
+               //{printf("7");}
+     | ITT '(' ')'             //    {printf("8");}
+       
     ;
    
+   
+ITT :  OPERATOR '+' 
+    | OPERATOR '-'
+    | OPERATOR '*'
+    | OPERATOR '/'
+    | OPERATOR  INC_OP
+    |OPERATOR  DEC_OP
+    | OPERATOR '<''<'
+    |OPERATOR '>''>'
+    ;   
 ASDD : ':' ASD
         ;    
 ASD :  IDENTIFIER '(' CONSTANT ')' ',' ASD      //{printf("5");}
@@ -366,14 +419,21 @@ destructor : '~'   cns '{' COMPOUND_BLOCK '}'
 function_definition: FUNCTION_OUTSIDE '{' COMPOUND_BLOCK'}'      
       ;
 FUNCTION_OUTSIDE :       type cns
+			| type2 cns
                  ;
                  
-YX : type IDENTIFIER
-   | type IDENTIFIER ',' YX
-   | IDENTIFIER
-   | IDENTIFIER ',' YX
+YX : type IDENTIFIER CX
+   | type IDENTIFIER  CX',' YX
+   | type2 IDENTIFIER CX
+   | type2 IDENTIFIER  CX',' YX
+   | IDENTIFIER CX
+   | IDENTIFIER  CX',' YX
    |
    ;    
+   
+  CX: '='X
+     |
+     ; 
    
 YXx : IDENTIFIER
    |  IDENTIFIER ',' YXx
@@ -383,6 +443,7 @@ YXx : IDENTIFIER
    ;                  
     
 outside_class_function :      type IDENTIFIER ':'':' cns '{' COMPOUND_BLOCK '}'
+		|  type2 IDENTIFIER ':'':' cns '{' COMPOUND_BLOCK '}'
             ;                       
           
 class_call :      CLASS IDENTIFIER IDENTIFIER
