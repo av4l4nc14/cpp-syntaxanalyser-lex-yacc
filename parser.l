@@ -31,7 +31,8 @@ IS            (u|U|l|L)*
 "using"            {return (USING);}
 "namespace"        {return (NAMESPACE);}
 "new"                    {return (NEW);}
-
+"operator"           {return (OPERATOR);}
+"const"              {return (CONST);}
 
 "float"            { return(FLOAT); }
 "char"            { return(CHAR); }
